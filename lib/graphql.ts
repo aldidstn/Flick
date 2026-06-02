@@ -2,48 +2,43 @@ import { gql } from "@apollo/client";
 
 export const CREATOR_BY_NICKNAME = gql`
   query CreatorByNickname($nickname: String!) {
-    creators(where: { nickname: $nickname }, first: 1) {
+    creatorClaimeds(where: { nickname: $nickname }, first: 1, orderBy: timestamp_, orderDirection: desc) {
       id
+      creator
       nickname
-      totalUsdcTipsReceived
-      totalEurcTipsReceived
-      createdAt
+      timestampParam
     }
   }
 `;
 
 export const CREATOR_BY_WALLET = gql`
-  query CreatorByWallet($id: ID!) {
-    creator(id: $id) {
+  query CreatorByWallet($creator: String!) {
+    creatorClaimeds(where: { creator: $creator }, first: 1, orderBy: timestamp_, orderDirection: desc) {
       id
+      creator
       nickname
-      totalUsdcTipsReceived
-      totalEurcTipsReceived
-      createdAt
+      timestampParam
     }
   }
 `;
 
-export const TOP_CREATORS_BY_USDC = gql`
-  query TopCreatorsByUsdc($first: Int!) {
-    creators(first: $first, orderBy: totalUsdcTipsReceived, orderDirection: desc) {
+export const TOP_CREATOR_EVENTS = gql`
+  query TopCreatorEvents($creatorLimit: Int!, $tipLimit: Int!) {
+    creatorClaimeds(first: $creatorLimit, orderBy: timestamp_, orderDirection: desc) {
       id
+      creator
       nickname
-      totalUsdcTipsReceived
-      totalEurcTipsReceived
-      createdAt
+      timestampParam
     }
-  }
-`;
-
-export const TOP_CREATORS_BY_EURC = gql`
-  query TopCreatorsByEurc($first: Int!) {
-    creators(first: $first, orderBy: totalEurcTipsReceived, orderDirection: desc) {
+    usdcTipSents(first: $tipLimit, orderBy: timestamp_, orderDirection: desc) {
       id
-      nickname
-      totalUsdcTipsReceived
-      totalEurcTipsReceived
-      createdAt
+      creator
+      amount
+    }
+    eurcTipSents(first: $tipLimit, orderBy: timestamp_, orderDirection: desc) {
+      id
+      creator
+      amount
     }
   }
 `;

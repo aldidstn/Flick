@@ -10,12 +10,29 @@ import { flickRegistryAbi } from "@/lib/abi";
 import type { CreatorProfile } from "@/lib/types";
 
 type CreatorByNicknameResult = {
-  creators: CreatorProfile[];
+  creatorClaimeds: CreatorClaimEvent[];
 };
 
 type CreatorByWalletResult = {
-  creator: CreatorProfile | null;
+  creatorClaimeds: CreatorClaimEvent[];
 };
+
+type CreatorClaimEvent = {
+  id: string;
+  creator: string;
+  nickname: string;
+  timestampParam?: string;
+};
+
+function eventToCreator(event: CreatorClaimEvent): CreatorProfile {
+  return {
+    id: event.creator.toLowerCase(),
+    nickname: event.nickname.toLowerCase(),
+    totalUsdcTipsReceived: "0",
+    totalEurcTipsReceived: "0",
+    createdAt: event.timestampParam || "0"
+  };
+}
 
 export function useCreatorByNickname(nickname: string) {
   const normalized = nickname.toLowerCase();
@@ -33,15 +50,15 @@ export function useCreatorByNickname(nickname: string) {
     functionName: "creatorOf",
     args: [normalized],
     query: {
-      enabled: Boolean(FLICK_CONTRACT_ADDRESS) && !query.data?.creators?.[0]
+      enabled: Boolean(FLICK_CONTRACT_ADDRESS) && !query.data?.creatorClaimeds?.[0]
     }
   });
 
-  const graphCreator = query.data?.creators?.[0];
+  const graphCreator = query.data?.creatorClaimeds?.[0];
   const contractOwner = contractRead.data && contractRead.data !== zeroAddress ? contractRead.data : undefined;
 
   const creator = useMemo<CreatorProfile | undefined>(() => {
-    if (graphCreator) return graphCreator;
+    if (graphCreator) return eventToCreator(graphCreator);
     if (contractOwner) {
       return {
         id: contractOwner,
@@ -63,10 +80,10 @@ export function useCreatorByNickname(nickname: string) {
 
 export function useCurrentCreator() {
   const { address } = useAccount();
-  const id = address?.toLowerCase();
-  const shouldQuery = Boolean(GOLDSKY_GRAPHQL_URL && id);
+  const creator = address?.toLowerCase();
+  const shouldQuery = Boolean(GOLDSKY_GRAPHQL_URL && creator);
   const query = useQuery<CreatorByWalletResult>(CREATOR_BY_WALLET, {
-    variables: { id },
+    variables: { creator },
     skip: !shouldQuery,
     fetchPolicy: "cache-and-network",
     pollInterval: 8_000
@@ -82,11 +99,12 @@ export function useCurrentCreator() {
     }
   });
 
-  const nickname = contractRead.data || query.data?.creator?.nickname;
-  const profile = query.data?.creator || (address && nickname
+  const graphCreator = query.data?.creatorClaimeds?.[0];
+  const nickname = contractRead.data || graphCreator?.nickname;
+  const profile = graphCreator ? eventToCreator(graphCreator) : (address && nickname
     ? {
         id: address,
-        nickname,
+        nickname: nickname.toLowerCase(),
         totalUsdcTipsReceived: "0",
         totalEurcTipsReceived: "0",
         createdAt: "0"
