@@ -111,63 +111,8 @@ export function TipJarScreen({ nickname }: { nickname: string }) {
 
   return (
     <AppFrame>
-      <section className="mx-auto grid w-full max-w-[1060px] grid-cols-1 justify-items-center gap-8 px-4 pb-20 pt-8 sm:px-6 lg:grid-cols-[360px_minmax(0,620px)] lg:px-8">
-        <div className="mx-auto flex h-full w-full max-w-[360px] flex-col gap-6">
-          <GlassCard className="p-6">
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex min-w-0 items-center gap-4">
-                <CreatorAvatar nickname={normalized} imageUrl={settings.avatarUrl || creator?.avatarUrl} />
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2">
-                    <h1 className="line-clamp-1 font-display text-4xl font-bold leading-tight text-ink sm:text-5xl">
-                      {settings.displayName || creator?.displayName || normalized}
-                    </h1>
-                    <BadgeCheck className="h-[1.5625rem] w-[1.5625rem] shrink-0 text-sky" aria-hidden />
-                  </div>
-                  <p className="mt-1 text-sm font-bold text-graphite">{displayProfileUrl(normalized)}</p>
-                </div>
-              </div>
-              {isOwner ? (
-                <Link
-                  href="/dashboard"
-                  className="sky-link-button focus-ring inline-flex min-h-12 shrink-0 items-center justify-center p-3 transition"
-                  aria-label="Manage your Flick jar"
-                  title="Manage your Flick jar"
-                >
-                  <ExternalLink className="h-[1.5625rem] w-[1.5625rem]" aria-hidden />
-                </Link>
-              ) : null}
-            </div>
-
-            <p className="mx-auto mt-6 max-w-xl text-center font-bold leading-7 text-graphite">
-              {settings.bio || creator?.bio || "Send a quick note and a stablecoin tip in one tactile flick."}
-            </p>
-            <p className="mt-4 inline-flex rounded-xl bg-duo-light px-4 py-2 text-sm font-black uppercase text-duo">
-              {settings.profileStatus || creator?.profileStatus || "Verified creator"}
-            </p>
-
-            <div className="mt-8 grid grid-cols-1 gap-4 min-[420px]:grid-cols-2">
-              <div className="rounded-xl bg-duo-light p-5 text-center">
-                <p className="text-sm font-black uppercase text-graphite">USDC</p>
-                <p className="mt-3 font-display text-5xl font-bold text-duo">
-                  {formatTokenAmount(liveTipJar.totalUsdcTipsReceived)}
-                </p>
-              </div>
-              <div className="rounded-xl border-2 border-cloud p-5 text-center">
-                <p className="text-sm font-black uppercase text-graphite">EURC</p>
-                <p className="mt-3 font-display text-5xl font-bold text-sky">
-                  {formatTokenAmount(liveTipJar.totalEurcTipsReceived)}
-                </p>
-              </div>
-            </div>
-          </GlassCard>
-
-          <GlassCard className="flex min-h-[320px] flex-1 flex-col p-6">
-            <ActivityFeed items={liveTipJar.activity} align="center" className="flex h-full flex-1 flex-col" />
-          </GlassCard>
-        </div>
-
-        <GlassCard className="mx-auto flex h-full w-full max-w-[620px] flex-col p-6 sm:p-8">
+      <section className="mx-auto flex w-full max-w-[1060px] flex-col gap-8 px-4 pb-20 pt-8 sm:px-6 lg:px-8">
+        <GlassCard className="mx-auto flex w-full max-w-[760px] flex-col p-6 sm:p-8">
           <div className="flex flex-col items-center gap-3 text-center sm:flex-row sm:justify-center">
             <div className="grid h-14 w-14 place-items-center rounded-xl bg-duo-light">
               <HeartHandshake className="h-[2.1875rem] w-[2.1875rem] text-duo" aria-hidden />
@@ -261,6 +206,61 @@ export function TipJarScreen({ nickname }: { nickname: string }) {
             </button>
           </div>
         </GlassCard>
+
+        <div className="grid w-full grid-cols-1 items-stretch gap-8 lg:grid-cols-[360px_minmax(0,1fr)]">
+          <GlassCard className="p-6">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex min-w-0 items-center gap-4">
+                <CreatorAvatar nickname={normalized} imageUrl={settings.avatarUrl || creator?.avatarUrl} />
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <h1 className="line-clamp-1 font-display text-4xl font-bold leading-tight text-ink sm:text-5xl">
+                      {settings.displayName || creator?.displayName || normalized}
+                    </h1>
+                    <BadgeCheck className="h-[1.5625rem] w-[1.5625rem] shrink-0 text-sky" aria-hidden />
+                  </div>
+                  <p className="mt-1 text-sm font-bold text-graphite">{displayProfileUrl(normalized)}</p>
+                </div>
+              </div>
+              {isOwner ? (
+                <Link
+                  href="/dashboard"
+                  className="sky-link-button focus-ring inline-flex min-h-12 shrink-0 items-center justify-center p-3 transition"
+                  aria-label="Manage your Flick jar"
+                  title="Manage your Flick jar"
+                >
+                  <ExternalLink className="h-[1.5625rem] w-[1.5625rem]" aria-hidden />
+                </Link>
+              ) : null}
+            </div>
+
+            <p className="mx-auto mt-6 max-w-xl text-center font-bold leading-7 text-graphite">
+              {settings.bio || creator?.bio || "Send a quick note and a stablecoin tip in one tactile flick."}
+            </p>
+            <p className="mt-4 inline-flex rounded-xl bg-duo-light px-4 py-2 text-sm font-black uppercase text-duo">
+              {settings.profileStatus || creator?.profileStatus || "Verified creator"}
+            </p>
+
+            <div className="mt-8 grid grid-cols-1 gap-4 min-[420px]:grid-cols-2">
+              <div className="rounded-xl bg-duo-light p-5 text-center">
+                <p className="text-sm font-black uppercase text-graphite">USDC</p>
+                <p className="mt-3 font-display text-5xl font-bold text-duo">
+                  {formatTokenAmount(liveTipJar.totalUsdcTipsReceived)}
+                </p>
+              </div>
+              <div className="rounded-xl border-2 border-cloud p-5 text-center">
+                <p className="text-sm font-black uppercase text-graphite">EURC</p>
+                <p className="mt-3 font-display text-5xl font-bold text-sky">
+                  {formatTokenAmount(liveTipJar.totalEurcTipsReceived)}
+                </p>
+              </div>
+            </div>
+          </GlassCard>
+
+          <GlassCard className="flex min-h-[320px] flex-1 flex-col p-6">
+            <ActivityFeed items={liveTipJar.activity} align="center" className="flex h-full flex-1 flex-col" />
+          </GlassCard>
+        </div>
       </section>
 
       {tipNotice ? (
