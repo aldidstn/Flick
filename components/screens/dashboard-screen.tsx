@@ -296,42 +296,44 @@ export function DashboardScreen() {
           <div className="-mx-4 -mb-20 -mt-8 grid min-h-[calc(100vh-5.5rem)] bg-cloud/40 sm:-mx-6 lg:-mx-8 lg:grid-cols-[minmax(0,1fr)_360px]">
             <div className="space-y-6 px-4 py-6 sm:px-6 lg:px-8 lg:py-7">
               <GlassCard className="p-6">
-                <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
-                  <div className="min-w-0">
-                    <p className="text-sm font-black uppercase text-graphite">Overview</p>
-                    <h1 className="mt-3 break-words font-display text-5xl font-bold leading-none text-duo sm:text-6xl lg:text-7xl">
-                      {nickname}
-                    </h1>
-                    <div className="mt-3 flex flex-wrap items-center gap-2">
-                      <p className="text-sm font-bold text-graphite">{displayProfileUrl(nickname)}</p>
-                      <span className="rounded-full border border-duo bg-duo-light px-3 py-1 text-xs font-black text-duo">
-                        Nickname locked
-                      </span>
+                <div className="space-y-6">
+                  <div className="flex items-start justify-between gap-4 sm:items-center">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-black uppercase text-graphite">Overview</p>
+                      <h1 className="mt-3 break-words font-display text-5xl font-bold leading-none text-duo sm:text-6xl lg:text-7xl">
+                        {nickname}
+                      </h1>
+                      <div className="mt-3 flex flex-wrap items-center gap-2">
+                        <p className="text-sm font-bold text-graphite">{displayProfileUrl(nickname)}</p>
+                        <span className="rounded-full border border-duo bg-duo-light px-3 py-1 text-xs font-black text-duo">
+                          Nickname locked
+                        </span>
+                      </div>
                     </div>
-                    <div className="mt-6 flex flex-col gap-3 min-[460px]:flex-row">
-                      <Link
-                        href={`/${nickname}`}
-                        className="duo-button focus-ring inline-flex min-h-12 items-center justify-center gap-2 px-5 py-3 text-sm font-black uppercase transition"
-                      >
-                        Open jar <ExternalLink className="h-5 w-5" aria-hidden />
-                      </Link>
+                    <div className="grid h-20 w-20 shrink-0 place-items-center overflow-hidden rounded-full bg-duo-light sm:h-32 sm:w-32 lg:h-36 lg:w-36">
+                      {profileSettings.settings.avatarUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={profileSettings.settings.avatarUrl}
+                          alt=""
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <WalletCards className="h-12 w-12 text-ink sm:h-20 sm:w-20" aria-hidden />
+                      )}
                     </div>
-                    <p className="sr-only" aria-live="polite">
-                      {copyStatus === "copied" ? "Public link copied." : copyStatus === "error" ? "Copy failed." : ""}
-                    </p>
                   </div>
-                  <div className="grid h-24 w-24 shrink-0 place-items-center overflow-hidden rounded-full bg-duo-light sm:h-32 sm:w-32 lg:h-36 lg:w-36">
-                    {profileSettings.settings.avatarUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={profileSettings.settings.avatarUrl}
-                        alt=""
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <WalletCards className="h-[3.75rem] w-[3.75rem] text-ink sm:h-20 sm:w-20" aria-hidden />
-                    )}
+                  <div className="flex flex-col gap-3 min-[460px]:flex-row">
+                    <Link
+                      href={`/${nickname}`}
+                      className="duo-button focus-ring inline-flex min-h-12 items-center justify-center gap-2 px-5 py-3 text-sm font-black uppercase transition"
+                    >
+                      Open jar <ExternalLink className="h-5 w-5" aria-hidden />
+                    </Link>
                   </div>
+                  <p className="sr-only" aria-live="polite">
+                    {copyStatus === "copied" ? "Public link copied." : copyStatus === "error" ? "Copy failed." : ""}
+                  </p>
                 </div>
               </GlassCard>
 
