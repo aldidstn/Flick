@@ -297,20 +297,9 @@ export function DashboardScreen() {
             <div className="space-y-6 px-4 py-6 sm:px-6 lg:px-8 lg:py-7">
               <GlassCard className="p-6">
                 <div className="space-y-6">
-                  <div className="flex items-start justify-between gap-4 sm:items-center">
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-black uppercase text-graphite">Overview</p>
-                      <h1 className="mt-3 break-words font-display text-5xl font-bold leading-none text-duo sm:text-6xl lg:text-7xl">
-                        {nickname}
-                      </h1>
-                      <div className="mt-3 flex flex-wrap items-center gap-2">
-                        <p className="text-sm font-bold text-graphite">{displayProfileUrl(nickname)}</p>
-                        <span className="rounded-full border border-duo bg-duo-light px-3 py-1 text-xs font-black text-duo">
-                          Nickname locked
-                        </span>
-                      </div>
-                    </div>
-                    <div className="grid h-20 w-20 shrink-0 place-items-center overflow-hidden rounded-full bg-duo-light sm:h-32 sm:w-32 lg:h-36 lg:w-36">
+                  <p className="text-sm font-black uppercase text-graphite">Overview</p>
+                  <div className="flex items-center gap-4 sm:justify-between">
+                    <div className="grid h-20 w-20 shrink-0 place-items-center overflow-hidden rounded-full bg-duo-light sm:order-2 sm:h-32 sm:w-32 lg:h-36 lg:w-36">
                       {profileSettings.settings.avatarUrl ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
@@ -322,11 +311,22 @@ export function DashboardScreen() {
                         <WalletCards className="h-12 w-12 text-ink sm:h-20 sm:w-20" aria-hidden />
                       )}
                     </div>
+                    <div className="min-w-0 flex-1 sm:order-1">
+                      <h1 className="break-words font-display text-5xl font-bold leading-none text-duo sm:text-6xl lg:text-7xl">
+                        {nickname}
+                      </h1>
+                      <div className="mt-3 flex flex-wrap items-center gap-2">
+                        <p className="text-sm font-bold text-graphite">{displayProfileUrl(nickname)}</p>
+                        <span className="rounded-full border border-duo bg-duo-light px-3 py-1 text-xs font-black text-duo">
+                          Nickname locked
+                        </span>
+                      </div>
+                    </div>
                   </div>
                   <div className="flex flex-col gap-3 min-[460px]:flex-row">
                     <Link
                       href={`/${nickname}`}
-                      className="duo-button focus-ring inline-flex min-h-12 items-center justify-center gap-2 px-5 py-3 text-sm font-black uppercase transition"
+                      className="duo-button focus-ring inline-flex min-h-12 w-full items-center justify-center gap-2 px-5 py-3 text-sm font-black uppercase transition min-[460px]:w-auto"
                     >
                       Open jar <ExternalLink className="h-5 w-5" aria-hidden />
                     </Link>
