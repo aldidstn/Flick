@@ -1,0 +1,32 @@
+specVersion: 1.0.0
+description: Flick creator claims and USDC/EURC tips on Arc Testnet.
+repository: https://github.com/flick/flick
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum/contract
+    name: FlickRegistry
+    network: arc-testnet
+    source:
+      address: "${NEXT_PUBLIC_FLICK_CONTRACT_ADDRESS}"
+      abi: FlickRegistry
+      startBlock: 0
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      entities:
+        - Creator
+        - UsdcTip
+        - EurcTip
+      abis:
+        - name: FlickRegistry
+          file: ./abis/FlickRegistry.json
+      eventHandlers:
+        - event: CreatorClaimed(indexed address,string,uint256)
+          handler: handleCreatorClaimed
+        - event: UsdcTipSent(indexed address,indexed address,string,uint256,string,string,uint256)
+          handler: handleUsdcTipSent
+        - event: EurcTipSent(indexed address,indexed address,string,uint256,string,string,uint256)
+          handler: handleEurcTipSent
+      file: ./src/mapping.ts

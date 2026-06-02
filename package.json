@@ -1,0 +1,53 @@
+{
+  "name": "flick",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "test:contracts": "forge test",
+    "deploy:contract": "forge create contracts/src/FlickRegistry.sol:FlickRegistry --rpc-url $ARC_TESTNET_RPC_URL --private-key $PRIVATE_KEY --broadcast --constructor-args $NEXT_PUBLIC_USDC_ADDRESS $NEXT_PUBLIC_EURC_ADDRESS",
+    "deploy:subgraph": "node scripts/prepare-subgraph.mjs deploy && goldsky subgraph deploy flick/v1 --path subgraph/generated-deploy",
+    "subgraph:codegen": "node scripts/prepare-subgraph.mjs codegen && graph codegen subgraph/generated-deploy/subgraph.yaml"
+  },
+  "dependencies": {
+    "@apollo/client": "^3.13.8",
+    "@circle-fin/adapter-viem-v2": "^1.0.0",
+    "@circle-fin/app-kit": "^1.0.0",
+    "@metamask/connect-evm": "^1.4.0",
+    "@reown/appkit": "1.7.8",
+    "@reown/appkit-adapter-wagmi": "1.7.8",
+    "@tailwindcss/forms": "^0.5.10",
+    "@tanstack/react-query": "^5.80.2",
+    "accounts": "^0.12.2",
+    "clsx": "^2.1.1",
+    "framer-motion": "^12.15.0",
+    "graphql": "^16.11.0",
+    "graphql-ws": "^6.0.5",
+    "lucide-react": "^0.511.0",
+    "next": "^14.2.29",
+    "pino-pretty": "^13.1.3",
+    "porto": "^0.2.37",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "viem": "^2.30.4",
+    "wagmi": "^2.15.5",
+    "zod": "^3.25.32"
+  },
+  "devDependencies": {
+    "@graphprotocol/graph-cli": "^0.95.0",
+    "@graphprotocol/graph-ts": "^0.36.0",
+    "@types/node": "^20.17.57",
+    "@types/react": "^18.3.22",
+    "@types/react-dom": "^18.3.7",
+    "autoprefixer": "^10.4.21",
+    "eslint": "^8.57.1",
+    "eslint-config-next": "^14.2.29",
+    "postcss": "^8.5.4",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.8.3"
+  }
+}

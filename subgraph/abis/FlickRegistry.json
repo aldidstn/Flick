@@ -1,0 +1,40 @@
+[
+  {
+    "type": "event",
+    "name": "CreatorClaimed",
+    "inputs": [
+      { "indexed": true, "name": "creator", "type": "address" },
+      { "indexed": false, "name": "nickname", "type": "string" },
+      { "indexed": false, "name": "timestamp", "type": "uint256" }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "UsdcTipSent",
+    "inputs": [
+      { "indexed": true, "name": "creator", "type": "address" },
+      { "indexed": true, "name": "sender", "type": "address" },
+      { "indexed": false, "name": "nickname", "type": "string" },
+      { "indexed": false, "name": "amount", "type": "uint256" },
+      { "indexed": false, "name": "senderName", "type": "string" },
+      { "indexed": false, "name": "message", "type": "string" },
+      { "indexed": false, "name": "timestamp", "type": "uint256" }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "EurcTipSent",
+    "inputs": [
+      { "indexed": true, "name": "creator", "type": "address" },
+      { "indexed": true, "name": "sender", "type": "address" },
+      { "indexed": false, "name": "nickname", "type": "string" },
+      { "indexed": false, "name": "amount", "type": "uint256" },
+      { "indexed": false, "name": "senderName", "type": "string" },
+      { "indexed": false, "name": "message", "type": "string" },
+      { "indexed": false, "name": "timestamp", "type": "uint256" }
+    ],
+    "anonymous": false
+  }
+]

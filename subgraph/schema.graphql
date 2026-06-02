@@ -1,0 +1,29 @@
+type Creator @entity {
+  id: ID!
+  nickname: String! @index
+  totalUsdcTipsReceived: BigDecimal!
+  totalEurcTipsReceived: BigDecimal!
+  createdAt: BigInt!
+  usdcTips: [UsdcTip!]! @derivedFrom(field: "creator")
+  eurcTips: [EurcTip!]! @derivedFrom(field: "creator")
+}
+
+type UsdcTip @entity {
+  id: ID!
+  creator: Creator!
+  senderAddress: Bytes!
+  senderName: String
+  amountUSDC: BigDecimal!
+  message: String
+  timestamp: BigInt!
+}
+
+type EurcTip @entity {
+  id: ID!
+  creator: Creator!
+  senderAddress: Bytes!
+  senderName: String
+  amountEURC: BigDecimal!
+  message: String
+  timestamp: BigInt!
+}
