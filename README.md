@@ -20,8 +20,11 @@ cp .env.example .env.local
 
 ```bash
 NEXT_PUBLIC_REOWN_PROJECT_ID=
-PRIVATE_KEY=
+NEXT_PUBLIC_FLICK_CONTRACT_ADDRESS=
+NEXT_PUBLIC_FLICK_BASE_URL=
+GOLDSKY_GRAPHQL_URL=
 GOLDSKY_API_KEY=
+PRIVATE_KEY=
 GOLDSKY_PROJECT_ID=
 ```
 
@@ -56,11 +59,34 @@ goldsky login
 npm run deploy:subgraph
 ```
 
-Set the resulting endpoint:
+For production, enable Goldsky's private endpoint and disable the public endpoint:
 
 ```bash
-NEXT_PUBLIC_GOLDSKY_GRAPHQL_URL=https://api.goldsky.com/api/public/<project_id>/subgraphs/flick/v1/gn
+npm run secure:subgraph
 ```
+
+Set the private endpoint and project-scoped API token as server-only environment variables:
+
+```bash
+GOLDSKY_GRAPHQL_URL=https://api.goldsky.com/api/private/<project_id>/subgraphs/flick/v1/gn
+GOLDSKY_API_KEY=<project-scoped-token>
+```
+
+The browser queries Flick's same-origin `/api/graphql` proxy. The proxy rejects cross-origin requests, only permits known read operations, limits request size, and rate-limits clients. Never expose the private Goldsky token through a `NEXT_PUBLIC_` variable.
+
+Tip transactions and their emitted event data remain publicly readable on Arc Testnet. The proxy reduces endpoint abuse and avoids exposing supporter wallet addresses through the app's recent-support query, but it cannot make on-chain data private.
+
+## Contract security
+
+Reserved nicknames and the 32-character nickname limit are enforced by both the client and `FlickRegistry`. Sender names are capped at 32 bytes and tip messages at 140 bytes on-chain. Updating these protections requires deploying a new registry contract and updating the subgraph and Vercel environment variables to its new address.
+
+## Security rollout
+
+1. Deploy the updated `FlickRegistry`.
+2. Update `NEXT_PUBLIC_FLICK_CONTRACT_ADDRESS` and `NEXT_PUBLIC_FLICK_DEPLOY_BLOCK`.
+3. Deploy the updated subgraph, then run `npm run secure:subgraph`.
+4. Add `GOLDSKY_GRAPHQL_URL` and `GOLDSKY_API_KEY` to Vercel as server-only variables and remove `NEXT_PUBLIC_GOLDSKY_GRAPHQL_URL`.
+5. Redeploy the app. For production-scale rate limiting across serverless instances, also add a Vercel Firewall rate-limit rule for `/api/graphql`.
 
 ## Verification
 

@@ -6,11 +6,18 @@ interface IERC20 {
 }
 
 contract FlickRegistry {
+    uint256 public constant MAX_NICKNAME_LENGTH = 32;
+    uint256 public constant MAX_SENDER_NAME_LENGTH = 32;
+    uint256 public constant MAX_MESSAGE_LENGTH = 140;
+
     error InvalidNickname();
+    error ReservedNickname();
     error NicknameTaken();
     error CreatorAlreadyClaimed();
     error CreatorNotFound();
     error EmptyAmount();
+    error SenderNameTooLong();
+    error MessageTooLong();
     error TransferFailed();
 
     IERC20 public immutable usdc;
@@ -64,6 +71,7 @@ contract FlickRegistry {
         string calldata senderName,
         string calldata message
     ) external {
+        _validateTipMetadata(senderName, message);
         address creator = _creatorFor(nickname);
         _collect(usdc, creator, amount);
         totalUsdcTipsReceived[creator] += amount;
@@ -77,6 +85,7 @@ contract FlickRegistry {
         string calldata senderName,
         string calldata message
     ) external {
+        _validateTipMetadata(senderName, message);
         address creator = _creatorFor(nickname);
         _collect(eurc, creator, amount);
         totalEurcTipsReceived[creator] += amount;
@@ -97,7 +106,7 @@ contract FlickRegistry {
 
     function _validateNickname(string calldata nickname) private pure {
         bytes calldata raw = bytes(nickname);
-        if (raw.length < 3 || raw.length > 20) revert InvalidNickname();
+        if (raw.length < 3 || raw.length > MAX_NICKNAME_LENGTH) revert InvalidNickname();
 
         for (uint256 i = 0; i < raw.length; i++) {
             bytes1 char = raw[i];
@@ -106,5 +115,25 @@ contract FlickRegistry {
             bool isUnderscore = char == 0x5f;
             if (!isLower && !isNumber && !isUnderscore) revert InvalidNickname();
         }
+
+        if (_isReservedNickname(nickname)) revert ReservedNickname();
+    }
+
+    function _validateTipMetadata(string calldata senderName, string calldata message) private pure {
+        if (bytes(senderName).length > MAX_SENDER_NAME_LENGTH) revert SenderNameTooLong();
+        if (bytes(message).length > MAX_MESSAGE_LENGTH) revert MessageTooLong();
+    }
+
+    function _isReservedNickname(string calldata nickname) private pure returns (bool) {
+        bytes32 value = keccak256(bytes(nickname));
+        return value == keccak256("claim")
+            || value == keccak256("dashboard")
+            || value == keccak256("api")
+            || value == keccak256("settings")
+            || value == keccak256("admin")
+            || value == keccak256("flickdemo")
+            || value == keccak256("demo")
+            || value == keccak256("admindemo")
+            || value == keccak256("loading");
     }
 }

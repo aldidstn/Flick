@@ -47,7 +47,6 @@ export const RECENT_TIPS = gql`
   query RecentTips($creator: String!) {
     usdcTips: usdcTipSents(where: { creator: $creator }, first: 12, orderBy: timestamp_, orderDirection: desc) {
       id
-      sender
       senderName
       amount
       message
@@ -55,28 +54,6 @@ export const RECENT_TIPS = gql`
     }
     eurcTips: eurcTipSents(where: { creator: $creator }, first: 12, orderBy: timestamp_, orderDirection: desc) {
       id
-      sender
-      senderName
-      amount
-      message
-      timestampParam
-    }
-  }
-`;
-
-export const TIP_ACTIVITY_SUBSCRIPTION = gql`
-  subscription TipActivity($creator: String!) {
-    usdcTips: usdcTipSents(where: { creator: $creator }, first: 12, orderBy: timestamp_, orderDirection: desc) {
-      id
-      sender
-      senderName
-      amount
-      message
-      timestampParam
-    }
-    eurcTips: eurcTipSents(where: { creator: $creator }, first: 12, orderBy: timestamp_, orderDirection: desc) {
-      id
-      sender
       senderName
       amount
       message

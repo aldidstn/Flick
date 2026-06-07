@@ -3,11 +3,9 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { ArrowRight, CheckCircle2, ShieldCheck } from "lucide-react";
+import { AlertCircle, CheckCircle2, Loader2, ShieldCheck } from "lucide-react";
 import { useAccount } from "wagmi";
 import { AppFrame } from "@/components/ui/app-frame";
-import { FlickButton } from "@/components/ui/flick-button";
-import { FlickCharacter } from "@/components/ui/flick-illustrations";
 import { GlassCard } from "@/components/ui/glass-card";
 import { WalletButton } from "@/components/ui/wallet-button";
 import { useClaimNickname } from "@/lib/hooks/use-flick-transactions";
@@ -25,6 +23,14 @@ export function ClaimScreen() {
   const claimTx = useClaimNickname();
   const currentCreator = useCurrentCreator();
   const [error, setError] = useState<string | null>(null);
+  const isClaiming = claimTx.state === "confirming";
+  const availabilityTone = availability.checking
+    ? "border-sky bg-white text-sky"
+    : availability.available
+      ? "border-duo bg-duo-light text-duo"
+      : nickname
+        ? "border-bubblegum bg-white text-bubblegum"
+        : "border-cloud bg-cloud/30 text-graphite";
 
   async function handleClaim() {
     setError(null);
@@ -38,16 +44,15 @@ export function ClaimScreen() {
 
   return (
     <AppFrame>
-      <section className="mx-auto grid w-full max-w-[1140px] items-center gap-10 px-4 pb-20 pt-8 sm:px-6 lg:grid-cols-[0.9fr_1.1fr] lg:px-8">
-        <div>
+      <section className="mx-auto flex w-full max-w-[760px] flex-col gap-8 px-4 pb-20 pt-8 sm:px-6 lg:px-8">
+        <div className="text-center">
           <p className="text-sm font-black uppercase text-graphite">Creator launch</p>
           <h1 className="mt-4 font-display text-5xl font-bold leading-tight text-duo sm:text-6xl lg:text-7xl">
             Claim your public jar.
           </h1>
-          <p className="mt-5 max-w-md text-lg font-bold leading-8 text-graphite">
+          <p className="mx-auto mt-5 max-w-xl text-lg font-bold leading-8 text-graphite">
             Your nickname becomes the on-chain identity supporters can remember, share, and tip.
           </p>
-          <FlickCharacter tone="claim" className="mx-auto mt-8 max-w-md lg:mx-0 lg:max-w-lg" />
         </div>
 
         <GlassCard className="p-6 sm:p-8">
@@ -107,19 +112,29 @@ export function ClaimScreen() {
                   id="nickname"
                   value={rawNickname}
                   onChange={(event) => setRawNickname(normalizeNickname(event.target.value))}
+                  maxLength={32}
                   placeholder="aldidesign"
                   className="min-w-0 flex-1 border-0 bg-transparent px-5 py-4 text-2xl font-black text-ink placeholder:text-silver focus:ring-0 sm:text-3xl"
                 />
               </div>
 
-              <motion.p
+              <motion.div
                 key={availability.message}
                 initial={{ opacity: 0, y: 5 }}
                 animate={{ opacity: 1, y: 0 }}
-                className={`mt-3 text-sm font-black ${availability.available ? "text-duo" : "text-graphite"}`}
+                role="status"
+                aria-live="polite"
+                className={`mt-3 flex items-center gap-3 rounded-xl border-2 px-4 py-3 text-sm font-black ${availabilityTone}`}
               >
-                {availability.message}
-              </motion.p>
+                {availability.checking ? (
+                  <Loader2 className="h-5 w-5 shrink-0 animate-spin" aria-hidden />
+                ) : availability.available ? (
+                  <CheckCircle2 className="h-5 w-5 shrink-0" aria-hidden />
+                ) : (
+                  <AlertCircle className="h-5 w-5 shrink-0" aria-hidden />
+                )}
+                <span>{availability.message}</span>
+              </motion.div>
 
               <div className="mt-8 rounded-xl bg-duo-light p-5 text-ink">
                 <div className="flex items-center gap-3">
@@ -145,17 +160,15 @@ export function ClaimScreen() {
               ) : null}
 
               <div className="mt-8">
-                <FlickButton
-                  disabled={!availability.available || !FLICK_CONTRACT_ADDRESS}
-                  label="Claim & launch"
-                  pendingLabel="Claiming on Arc..."
-                  state={claimTx.state}
-                  onConfirm={handleClaim}
-                />
-              </div>
-
-              <div className="mt-5 flex items-center justify-end gap-2 text-sm font-black uppercase text-sky">
-                Contract backed <ArrowRight className="h-5 w-5" aria-hidden />
+                <button
+                  type="button"
+                  disabled={!availability.available || !FLICK_CONTRACT_ADDRESS || isClaiming}
+                  onClick={handleClaim}
+                  className="duo-button focus-ring inline-flex min-h-14 w-full items-center justify-center gap-2 px-5 py-4 text-sm font-black uppercase transition disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {isClaiming ? <Loader2 className="h-5 w-5 animate-spin" aria-hidden /> : null}
+                  {isClaiming ? "Claiming on Arc..." : "Claim & launch"}
+                </button>
               </div>
             </div>
           )}

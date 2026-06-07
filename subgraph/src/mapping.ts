@@ -45,7 +45,6 @@ export function handleUsdcTipSent(event: UsdcTipSent): void {
 
   let tip = new UsdcTip(event.transaction.hash.toHexString() + "-" + event.logIndex.toString());
   tip.creator = creator.id;
-  tip.senderAddress = event.params.sender;
   tip.senderName = event.params.senderName;
   tip.amountUSDC = amount;
   tip.message = event.params.message;
@@ -62,7 +61,6 @@ export function handleEurcTipSent(event: EurcTipSent): void {
 
   let tip = new EurcTip(event.transaction.hash.toHexString() + "-" + event.logIndex.toString());
   tip.creator = creator.id;
-  tip.senderAddress = event.params.sender;
   tip.senderName = event.params.senderName;
   tip.amountEURC = amount;
   tip.message = event.params.message;

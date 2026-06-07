@@ -1,9 +1,12 @@
 export const flickRegistryAbi = [
   { type: "error", name: "InvalidNickname", inputs: [] },
+  { type: "error", name: "ReservedNickname", inputs: [] },
   { type: "error", name: "NicknameTaken", inputs: [] },
   { type: "error", name: "CreatorAlreadyClaimed", inputs: [] },
   { type: "error", name: "CreatorNotFound", inputs: [] },
   { type: "error", name: "EmptyAmount", inputs: [] },
+  { type: "error", name: "SenderNameTooLong", inputs: [] },
+  { type: "error", name: "MessageTooLong", inputs: [] },
   { type: "error", name: "TransferFailed", inputs: [] },
   {
     type: "function",

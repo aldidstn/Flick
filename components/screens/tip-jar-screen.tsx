@@ -111,8 +111,8 @@ export function TipJarScreen({ nickname }: { nickname: string }) {
 
   return (
     <AppFrame>
-      <section className="mx-auto flex w-full max-w-[1060px] flex-col gap-8 px-4 pb-20 pt-8 sm:px-6 lg:px-8">
-        <GlassCard className="mx-auto flex w-full max-w-[760px] flex-col p-6 sm:p-8">
+      <section className="mx-auto grid w-full max-w-[1060px] grid-cols-1 items-stretch gap-8 px-4 pb-20 pt-8 sm:px-6 lg:grid-cols-[360px_minmax(0,1fr)] lg:px-8">
+        <GlassCard className="order-1 flex w-full flex-col p-6 sm:p-8 lg:order-2">
           <div className="flex flex-col items-center gap-3 text-center sm:flex-row sm:justify-center">
             <div className="grid h-14 w-14 place-items-center rounded-xl bg-duo-light">
               <HeartHandshake className="h-[2.1875rem] w-[2.1875rem] text-duo" aria-hidden />
@@ -161,6 +161,7 @@ export function TipJarScreen({ nickname }: { nickname: string }) {
               <input
                 value={senderName}
                 onChange={(event) => setSenderName(event.target.value.slice(0, 32))}
+                maxLength={32}
                 placeholder="Supporter"
                 className="flat-input mt-2 w-full px-5 py-4 font-bold text-ink placeholder:text-silver"
               />
@@ -171,11 +172,16 @@ export function TipJarScreen({ nickname }: { nickname: string }) {
               <textarea
                 value={message}
                 onChange={(event) => updateMessageDraft(event.target.value)}
+                maxLength={140}
                 placeholder="Add a note"
                 rows={4}
                 className="flat-input mt-2 min-h-[160px] w-full flex-1 resize-none px-5 py-4 font-bold text-ink placeholder:text-silver"
               />
             </label>
+
+            <p className="text-sm font-bold leading-6 text-graphite">
+              Sender name and message are recorded publicly on Arc Testnet. Do not include sensitive information.
+            </p>
           </div>
 
           {!isConnected ? (
@@ -207,12 +213,12 @@ export function TipJarScreen({ nickname }: { nickname: string }) {
           </div>
         </GlassCard>
 
-        <div className="grid w-full grid-cols-1 items-stretch gap-8 lg:grid-cols-[360px_minmax(0,1fr)]">
-          <GlassCard className="p-6">
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex min-w-0 items-center gap-4">
+        <div className="order-2 flex min-w-0 flex-col gap-8 lg:order-1">
+          <GlassCard className="p-6 text-center">
+            <div className="flex flex-wrap items-center justify-center gap-4">
+              <div className="flex min-w-0 max-w-full items-center justify-center gap-4">
                 <CreatorAvatar nickname={normalized} imageUrl={settings.avatarUrl || creator?.avatarUrl} />
-                <div className="min-w-0">
+                <div className="min-w-0 text-left">
                   <div className="flex items-center gap-2">
                     <h1 className="line-clamp-1 font-display text-4xl font-bold leading-tight text-ink sm:text-5xl">
                       {settings.displayName || creator?.displayName || normalized}
@@ -237,9 +243,11 @@ export function TipJarScreen({ nickname }: { nickname: string }) {
             <p className="mx-auto mt-6 max-w-xl text-center font-bold leading-7 text-graphite">
               {settings.bio || creator?.bio || "Send a quick note and a stablecoin tip in one tactile flick."}
             </p>
-            <p className="mt-4 inline-flex rounded-xl bg-duo-light px-4 py-2 text-sm font-black uppercase text-duo">
-              {settings.profileStatus || creator?.profileStatus || "Verified creator"}
-            </p>
+            <div className="mt-4 flex justify-center">
+              <p className="inline-flex rounded-xl bg-duo-light px-4 py-2 text-sm font-black uppercase text-duo">
+                {settings.profileStatus || creator?.profileStatus || "Verified creator"}
+              </p>
+            </div>
 
             <div className="mt-8 grid grid-cols-1 gap-4 min-[420px]:grid-cols-2">
               <div className="rounded-xl bg-duo-light p-5 text-center">
@@ -257,7 +265,7 @@ export function TipJarScreen({ nickname }: { nickname: string }) {
             </div>
           </GlassCard>
 
-          <GlassCard className="flex min-h-[320px] flex-1 flex-col p-6">
+          <GlassCard className="flex min-h-[320px] flex-1 flex-col p-6 lg:min-h-0">
             <ActivityFeed items={liveTipJar.activity} align="center" className="flex h-full flex-1 flex-col" />
           </GlassCard>
         </div>

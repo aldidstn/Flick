@@ -1,16 +1,14 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { useQuery } from "@apollo/client";
 import { formatUnits } from "viem";
 import { GOLDSKY_GRAPHQL_URL } from "@/lib/constants";
-import { RECENT_TIPS, TIP_ACTIVITY_SUBSCRIPTION } from "@/lib/graphql";
+import { RECENT_TIPS } from "@/lib/graphql";
 import type { ActivityItem } from "@/lib/types";
 
 type RawTip = {
   id: string;
-  senderAddress?: string;
-  sender?: string;
   senderName?: string | null;
   amountUSDC?: string;
   amountEURC?: string;
@@ -39,15 +37,11 @@ function normalizeIndexedTimestamp(tip: RawTip) {
   return Number(tip.timestampParam || tip.timestamp || 0);
 }
 
-function normalizeIndexedSender(tip: RawTip) {
-  return tip.senderAddress || tip.sender || "0x0000000000000000000000000000000000000000";
-}
-
 export function mergeTips(data?: RecentTipsResult): ActivityItem[] {
   const usdc = data?.usdcTips.map((tip) => ({
     id: tip.id,
     token: "USDC" as const,
-    senderAddress: normalizeIndexedSender(tip),
+    senderAddress: "0x0000000000000000000000000000000000000000",
     senderName: tip.senderName,
     amount: normalizeIndexedAmount(tip, tip.amountUSDC),
     message: tip.message,
@@ -57,7 +51,7 @@ export function mergeTips(data?: RecentTipsResult): ActivityItem[] {
   const eurc = data?.eurcTips.map((tip) => ({
     id: tip.id,
     token: "EURC" as const,
-    senderAddress: normalizeIndexedSender(tip),
+    senderAddress: "0x0000000000000000000000000000000000000000",
     senderName: tip.senderName,
     amount: normalizeIndexedAmount(tip, tip.amountEURC),
     message: tip.message,
@@ -75,16 +69,6 @@ export function useActivity(creatorId?: string) {
     fetchPolicy: "cache-and-network",
     pollInterval: 8_000
   });
-
-  useEffect(() => {
-    if (!shouldQuery) return;
-    const unsubscribe = query.subscribeToMore<RecentTipsResult>({
-      document: TIP_ACTIVITY_SUBSCRIPTION,
-      variables: { creator: creatorId?.toLowerCase() },
-      updateQuery: (_previous, { subscriptionData }) => subscriptionData.data
-    });
-    return () => unsubscribe();
-  }, [creatorId, query, shouldQuery]);
 
   const activity = useMemo(() => mergeTips(query.data), [query.data]);
 

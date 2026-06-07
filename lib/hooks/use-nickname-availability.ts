@@ -39,9 +39,9 @@ export function useNicknameAvailability(nickname: string) {
     }
 
     if (graphTaken || contractTaken) {
-      return { available: false, message: "That nickname is already claimed.", checking: false };
+      return { available: false, message: "Nickname already used. Choose another one.", checking: false };
     }
 
-    return { available: true, message: "Available. Ready to claim.", checking: false };
+    return { available: true, message: "Nickname available. Ready to claim.", checking: false };
   }, [contractRead.data, contractRead.isLoading, graph.creator, graph.loading, nickname, validationError]);
 }

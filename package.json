@@ -11,6 +11,7 @@
     "test:contracts": "forge test",
     "deploy:contract": "forge create contracts/src/FlickRegistry.sol:FlickRegistry --rpc-url $ARC_TESTNET_RPC_URL --private-key $PRIVATE_KEY --broadcast --constructor-args $NEXT_PUBLIC_USDC_ADDRESS $NEXT_PUBLIC_EURC_ADDRESS",
     "deploy:subgraph": "node scripts/prepare-subgraph.mjs deploy && goldsky subgraph deploy flick/v1 --path subgraph/generated-deploy",
+    "secure:subgraph": "goldsky subgraph update flick/v1 --public-endpoint disabled --private-endpoint enabled",
     "subgraph:codegen": "node scripts/prepare-subgraph.mjs codegen && graph codegen subgraph/generated-deploy/subgraph.yaml"
   },
   "dependencies": {
@@ -26,7 +27,6 @@
     "clsx": "^2.1.1",
     "framer-motion": "^12.15.0",
     "graphql": "^16.11.0",
-    "graphql-ws": "^6.0.5",
     "lucide-react": "^0.511.0",
     "next": "^14.2.29",
     "pino-pretty": "^13.1.3",

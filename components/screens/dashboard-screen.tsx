@@ -1,8 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
-import { Copy, Download, ExternalLink, QrCode, Save, Share2, UserRound, WalletCards } from "lucide-react";
+import { Copy, Download, ExternalLink, QrCode, Save, Share2, WalletCards, X } from "lucide-react";
 import { useAccount } from "wagmi";
 import { ActivityFeed } from "@/components/ui/activity-feed";
 import { AppFrame } from "@/components/ui/app-frame";
@@ -16,6 +17,7 @@ import { useActivity } from "@/lib/hooks/use-activity";
 import { useCurrentCreator } from "@/lib/hooks/use-creator";
 import { useLiveTipEvents } from "@/lib/hooks/use-live-tip-events";
 import { useProfileSettings } from "@/lib/hooks/use-profile-settings";
+import type { CreatorProfileSettings } from "@/lib/types";
 
 function roundedRect(ctx: CanvasRenderingContext2D, x: number, y: number, width: number, height: number, radius: number) {
   ctx.beginPath();
@@ -46,6 +48,7 @@ export function DashboardScreen() {
   const [exportStatus, setExportStatus] = useState<"idle" | "exported" | "empty" | "error">("idle");
   const [incomeFilter, setIncomeFilter] = useState<"ALL" | FlickToken>("ALL");
   const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [profileSnapshot, setProfileSnapshot] = useState<CreatorProfileSettings | null>(null);
   const nickname = profile?.nickname || "";
   const shareUrl = useMemo(() => (nickname ? publicProfileUrl(nickname) : ""), [nickname]);
   const qrImageUrl = useMemo(
@@ -273,23 +276,27 @@ export function DashboardScreen() {
         ) : loading ? (
           <div className="min-h-[50vh]" aria-busy="true" />
         ) : !profile ? (
-          <GlassCard className="mx-auto grid max-w-4xl gap-8 p-6 sm:p-8 lg:grid-cols-[0.9fr_1.1fr]">
-            <FlickCharacter tone="claim" className="mx-auto max-w-md lg:max-w-none" />
-            <div className="flex items-center">
-              <div>
-                <UserRound className="h-[3.75rem] w-[3.75rem] text-duo" aria-hidden />
-                <h1 className="mt-5 font-display text-5xl font-bold leading-tight text-duo sm:text-6xl">Create your nickname</h1>
-                <p className="mt-4 max-w-md text-lg font-bold leading-8 text-graphite">
-                  This wallet has not created a Flick nickname yet. Create it once, then your dashboard will unlock your tip page,
-                  income, and profile controls.
-                </p>
-                <Link
-                  href="/claim"
-                  className="duo-button focus-ring mt-7 inline-flex min-h-12 items-center justify-center gap-2 px-5 py-3 text-sm font-black uppercase transition"
-                >
-                  Create nickname <ExternalLink className="h-5 w-5" aria-hidden />
-                </Link>
-              </div>
+          <GlassCard className="mx-auto flex w-full max-w-xl flex-col items-center p-6 text-center sm:p-8">
+            <Image
+              src="/nickname.webp"
+              alt="Flick mascot ready to create a nickname"
+              width={1024}
+              height={1024}
+              priority
+              className="h-auto w-full max-w-[320px]"
+            />
+            <div className="mt-2 w-full">
+              <h1 className="font-display text-5xl font-bold leading-tight text-duo sm:text-6xl">Create your nickname</h1>
+              <p className="mx-auto mt-4 max-w-md text-lg font-bold leading-8 text-graphite">
+                This wallet has not created a Flick nickname yet. Create it once, then your dashboard will unlock your tip page,
+                income, and profile controls.
+              </p>
+              <Link
+                href="/claim"
+                className="duo-button focus-ring mt-7 inline-flex min-h-12 w-full items-center justify-center gap-2 px-5 py-3 text-sm font-black uppercase transition"
+              >
+                Create nickname <ExternalLink className="h-5 w-5" aria-hidden />
+              </Link>
             </div>
           </GlassCard>
         ) : (
@@ -433,12 +440,15 @@ export function DashboardScreen() {
                   onSubmit={(event) => {
                     event.preventDefault();
                     if (!isEditingProfile) {
+                      setProfileSnapshot({ ...profileSettings.settings });
                       setIsEditingProfile(true);
                       return;
                     }
                     const saved = profileSettings.save(profileSettings.settings);
                     if (saved) {
+                      setProfileSnapshot(null);
                       setIsEditingProfile(false);
+                      event.currentTarget.reset();
                     }
                   }}
                 >
@@ -499,13 +509,40 @@ export function DashboardScreen() {
                       </button>
                     ) : null}
                   </label>
-                  <button
-                    type="submit"
-                    className="focus-ring inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border-2 border-duo bg-white px-5 py-3 text-sm font-black uppercase text-duo transition hover:bg-duo-light"
-                  >
-                    <Save className="h-5 w-5" aria-hidden />
-                    {isEditingProfile ? "Save profile" : "Edit profile"}
-                  </button>
+                  {isEditingProfile ? (
+                    <div className="grid grid-cols-2 gap-3">
+                      <button
+                        type="button"
+                        onClick={(event) => {
+                          if (profileSnapshot) {
+                            profileSettings.setSettings(profileSnapshot);
+                          }
+                          setProfileSnapshot(null);
+                          setIsEditingProfile(false);
+                          event.currentTarget.form?.reset();
+                        }}
+                        className="focus-ring inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border-2 border-duo bg-white px-4 py-3 text-sm font-black uppercase text-duo transition hover:bg-duo-light"
+                      >
+                        <X className="h-5 w-5" aria-hidden />
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        className="duo-button focus-ring inline-flex min-h-12 items-center justify-center gap-2 px-4 py-3 text-sm font-black uppercase transition"
+                      >
+                        <Save className="h-5 w-5" aria-hidden />
+                        Save profile
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      type="submit"
+                      className="focus-ring inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border-2 border-duo bg-white px-5 py-3 text-sm font-black uppercase text-duo transition hover:bg-duo-light"
+                    >
+                      <Save className="h-5 w-5" aria-hidden />
+                      Edit profile
+                    </button>
+                  )}
                   {profileSettings.error ? (
                     <p className="text-center text-xs font-black uppercase text-bubblegum">{profileSettings.error}</p>
                   ) : profileSettings.savedAt ? (

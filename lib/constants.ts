@@ -34,8 +34,18 @@ export const FLICK_DEPLOY_BLOCK = BigInt(process.env.NEXT_PUBLIC_FLICK_DEPLOY_BL
 
 export const FLICK_BASE_URL = process.env.NEXT_PUBLIC_FLICK_BASE_URL || "http://localhost:3000";
 
-export const GOLDSKY_GRAPHQL_URL = process.env.NEXT_PUBLIC_GOLDSKY_GRAPHQL_URL || "";
+export const GOLDSKY_GRAPHQL_URL = "/api/graphql";
 
-export const NICKNAME_PATTERN = /^[a-z0-9_]{3,20}$/;
+export const NICKNAME_PATTERN = /^[a-z0-9_]{3,32}$/;
 
-export const RESERVED_ROUTES = new Set(["claim", "dashboard", "api", "settings", "admin", "loading"]);
+export const RESERVED_ROUTES = new Set([
+  "claim",
+  "dashboard",
+  "api",
+  "settings",
+  "admin",
+  "flickdemo",
+  "demo",
+  "admindemo",
+  "loading"
+]);

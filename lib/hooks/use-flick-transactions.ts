@@ -23,10 +23,13 @@ function friendlyContractError(error: unknown) {
     if (revertError instanceof ContractFunctionRevertedError) {
       const name = revertError.data?.errorName;
       if (name === "CreatorAlreadyClaimed") return new Error("This wallet already claimed a Flick nickname.");
+      if (name === "ReservedNickname") return new Error("That nickname is reserved.");
       if (name === "NicknameTaken") return new Error("That nickname is already claimed.");
-      if (name === "InvalidNickname") return new Error("Use 3-20 lowercase letters, numbers, or underscores.");
+      if (name === "InvalidNickname") return new Error("Use 3-32 lowercase letters, numbers, or underscores.");
       if (name === "CreatorNotFound") return new Error("Creator not found.");
       if (name === "EmptyAmount") return new Error("Enter an amount greater than zero.");
+      if (name === "SenderNameTooLong") return new Error("Sender name must be 32 characters or fewer.");
+      if (name === "MessageTooLong") return new Error("Message must be 140 characters or fewer.");
       if (name === "TransferFailed") return new Error("Token transfer failed.");
     }
   }

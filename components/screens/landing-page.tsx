@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { useAppKit, useAppKitState } from "@reown/appkit/react";
 import { motion } from "framer-motion";
 import type { Variants } from "framer-motion";
-import { ArrowRight, CheckCircle2, Link2, Sparkles, Wallet, Zap } from "lucide-react";
+import { CheckCircle2, Link2, Sparkles, Wallet, Zap } from "lucide-react";
 import { useAccount } from "wagmi";
 import { AppFrame } from "@/components/ui/app-frame";
 import { useCurrentNickname } from "@/lib/hooks/use-current-nickname";
@@ -219,7 +219,7 @@ function CreatorCard({ creator }: { creator: CreatorProfile }) {
         </div>
 
         <div className="relative z-10 mt-8 w-full">
-          <span className="focus-ring inline-flex min-h-[54px] w-full items-center justify-center rounded-lg border-[3px] border-duo bg-white/70 px-5 py-3 text-lg font-black text-duo transition group-hover:-translate-y-0.5 group-hover:bg-duo-light">
+          <span className="focus-ring inline-flex min-h-12 w-full items-center justify-center rounded-xl border-2 border-duo bg-white px-4 py-3 text-sm font-black uppercase text-duo transition group-hover:bg-duo-light">
             Flick to {displayName}
           </span>
         </div>
@@ -232,7 +232,7 @@ function TopCreatorsSection() {
   const { creators, loading } = useTopCreators(6);
 
   return (
-    <section className="mx-auto w-full max-w-[1140px] px-4 pb-40 sm:px-6 lg:px-8 lg:pb-48">
+    <section id="top-creators" className="mx-auto w-full max-w-[1140px] scroll-mt-24 px-4 pb-40 sm:px-6 lg:px-8 lg:pb-48">
       <div>
         <div>
           <p className="text-sm font-black uppercase text-graphite">Top creators</p>
@@ -282,14 +282,8 @@ export function LandingPage() {
             Flick helps creators set up a personal tipping page, share it instantly, and receive fast digital support from fans.
           </motion.p>
 
-          <motion.div variants={item} className="mt-9 flex flex-col gap-4 sm:flex-row">
+          <motion.div variants={item} className="mt-9">
             <LandingCta className="w-full sm:w-auto" />
-            <Link
-              href="/flickdemo"
-              className="sky-link-button focus-ring inline-flex min-h-12 w-full items-center justify-center gap-2 px-5 py-3 text-sm font-black uppercase transition sm:w-auto sm:px-6"
-            >
-              See example <ArrowRight className="h-5 w-5" aria-hidden />
-            </Link>
           </motion.div>
 
           <motion.p variants={item} className="mt-5 text-sm font-bold text-graphite">

@@ -50,21 +50,53 @@ contract FlickRegistryTest {
     }
 
     function testRejectsInvalidNickname() public {
+        bool accepted;
         try registry.claimNickname("Al") {
-            revert("expected invalid nickname");
+            accepted = true;
         } catch {}
+        require(!accepted, "accepted short nickname");
 
         try registry.claimNickname("aldi-design") {
-            revert("expected invalid nickname");
+            accepted = true;
         } catch {}
+        require(!accepted, "accepted invalid characters");
+    }
+
+    function testAcceptsThirtyTwoCharacterNickname() public {
+        string memory nickname = "abcdefghijklmnopqrstuvwxyz123456";
+        registry.claimNickname(nickname);
+
+        require(registry.creatorOf(nickname) == address(this), "creator mismatch");
+    }
+
+    function testRejectsThirtyThreeCharacterNickname() public {
+        bool accepted;
+        try registry.claimNickname("abcdefghijklmnopqrstuvwxyz1234567") {
+            accepted = true;
+        } catch {}
+        require(!accepted, "accepted long nickname");
+    }
+
+    function testRejectsReservedNicknames() public {
+        _expectReservedNickname("claim");
+        _expectReservedNickname("dashboard");
+        _expectReservedNickname("api");
+        _expectReservedNickname("settings");
+        _expectReservedNickname("admin");
+        _expectReservedNickname("flickdemo");
+        _expectReservedNickname("demo");
+        _expectReservedNickname("admindemo");
+        _expectReservedNickname("loading");
     }
 
     function testRejectsSecondNicknameForSameCreator() public {
         registry.claimNickname("aldidesign");
 
-        try registry.claimNickname("flickdemo") {
-            revert("expected creator already claimed");
+        bool accepted;
+        try registry.claimNickname("secondname") {
+            accepted = true;
         } catch {}
+        require(!accepted, "accepted second nickname");
     }
 
     function testTracksUsdcTips() public {
@@ -84,9 +116,45 @@ contract FlickRegistryTest {
     function testRejectsZeroTip() public {
         registry.claimNickname("aldidesign");
 
+        bool accepted;
         try registry.tipUSDC("aldidesign", 0, "Mira", "Nope") {
-            revert("expected empty amount");
+            accepted = true;
         } catch {}
+        require(!accepted, "accepted zero tip");
+    }
+
+    function testRejectsLongSenderName() public {
+        registry.claimNickname("aldidesign");
+
+        bool accepted;
+        try registry.tipUSDC("aldidesign", 1_000_000, "abcdefghijklmnopqrstuvwxyz1234567", "Hello") {
+            accepted = true;
+        } catch {}
+        require(!accepted, "accepted long sender name");
+    }
+
+    function testRejectsLongMessage() public {
+        registry.claimNickname("aldidesign");
+
+        bool accepted;
+        try registry.tipUSDC(
+            "aldidesign",
+            1_000_000,
+            "Mira",
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        ) {
+            accepted = true;
+        } catch {}
+        require(!accepted, "accepted long message");
+    }
+
+    function _expectReservedNickname(string memory nickname) private {
+        FlickRegistry freshRegistry = new FlickRegistry(address(usdc), address(eurc));
+        bool accepted;
+        try freshRegistry.claimNickname(nickname) {
+            accepted = true;
+        } catch {}
+        require(!accepted, "accepted reserved nickname");
     }
 
     function _same(string memory a, string memory b) private pure returns (bool) {

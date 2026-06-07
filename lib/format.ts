@@ -2,12 +2,12 @@ import { formatUnits } from "viem";
 import { FLICK_BASE_URL, NICKNAME_PATTERN, RESERVED_ROUTES } from "@/lib/constants";
 
 export function normalizeNickname(value: string) {
-  return value.trim().toLowerCase().replace(/[^a-z0-9_]/g, "").slice(0, 20);
+  return value.trim().toLowerCase().replace(/[^a-z0-9_]/g, "").slice(0, 32);
 }
 
 export function validateNickname(value: string) {
   if (!NICKNAME_PATTERN.test(value)) {
-    return "Use 3-20 lowercase letters, numbers, or underscores.";
+    return "Use 3-32 lowercase letters, numbers, or underscores.";
   }
 
   if (RESERVED_ROUTES.has(value)) {

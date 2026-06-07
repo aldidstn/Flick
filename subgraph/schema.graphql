@@ -11,7 +11,6 @@ type Creator @entity {
 type UsdcTip @entity {
   id: ID!
   creator: Creator!
-  senderAddress: Bytes!
   senderName: String
   amountUSDC: BigDecimal!
   message: String
@@ -21,7 +20,6 @@ type UsdcTip @entity {
 type EurcTip @entity {
   id: ID!
   creator: Creator!
-  senderAddress: Bytes!
   senderName: String
   amountEURC: BigDecimal!
   message: String
