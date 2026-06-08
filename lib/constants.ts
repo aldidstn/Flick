@@ -44,6 +44,7 @@ export const RESERVED_ROUTES = new Set([
   "api",
   "settings",
   "admin",
+  "creators",
   "flickdemo",
   "demo",
   "admindemo",

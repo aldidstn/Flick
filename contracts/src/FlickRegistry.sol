@@ -131,6 +131,7 @@ contract FlickRegistry {
             || value == keccak256("api")
             || value == keccak256("settings")
             || value == keccak256("admin")
+            || value == keccak256("creators")
             || value == keccak256("flickdemo")
             || value == keccak256("demo")
             || value == keccak256("admindemo")

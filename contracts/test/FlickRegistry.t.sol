@@ -83,6 +83,7 @@ contract FlickRegistryTest {
         _expectReservedNickname("api");
         _expectReservedNickname("settings");
         _expectReservedNickname("admin");
+        _expectReservedNickname("creators");
         _expectReservedNickname("flickdemo");
         _expectReservedNickname("demo");
         _expectReservedNickname("admindemo");
