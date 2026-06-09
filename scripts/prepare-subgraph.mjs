@@ -4,6 +4,7 @@ import path from "node:path";
 const root = process.cwd();
 const mode = process.argv[2] || "deploy";
 const contractAddress = process.env.NEXT_PUBLIC_FLICK_CONTRACT_ADDRESS;
+const deployBlock = process.env.NEXT_PUBLIC_FLICK_DEPLOY_BLOCK || "0";
 
 if (mode === "deploy" && !contractAddress) {
   throw new Error("NEXT_PUBLIC_FLICK_CONTRACT_ADDRESS is required before deploying the Goldsky subgraph.");
@@ -24,7 +25,8 @@ const yaml = fs
   .replace(
     "${NEXT_PUBLIC_FLICK_CONTRACT_ADDRESS}",
     contractAddress || "0x0000000000000000000000000000000000000000"
-  );
+  )
+  .replace("${NEXT_PUBLIC_FLICK_DEPLOY_BLOCK}", deployBlock);
 
 fs.writeFileSync(path.join(outputDir, "subgraph.yaml"), yaml);
 console.log(`Prepared Goldsky subgraph for ${contractAddress || "codegen placeholder"}`);

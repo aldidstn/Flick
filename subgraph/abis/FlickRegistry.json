@@ -1,6 +1,20 @@
 [
   {
     "type": "event",
+    "name": "ProfileUpdated",
+    "inputs": [
+      { "indexed": true, "name": "creator", "type": "address" },
+      { "indexed": false, "name": "nickname", "type": "string" },
+      { "indexed": false, "name": "displayName", "type": "string" },
+      { "indexed": false, "name": "bio", "type": "string" },
+      { "indexed": false, "name": "avatarUrl", "type": "string" },
+      { "indexed": false, "name": "profileStatus", "type": "string" },
+      { "indexed": false, "name": "timestamp", "type": "uint256" }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
     "name": "CreatorClaimed",
     "inputs": [
       { "indexed": true, "name": "creator", "type": "address" },

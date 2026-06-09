@@ -10,7 +10,7 @@ dataSources:
     source:
       address: "${NEXT_PUBLIC_FLICK_CONTRACT_ADDRESS}"
       abi: FlickRegistry
-      startBlock: 0
+      startBlock: ${NEXT_PUBLIC_FLICK_DEPLOY_BLOCK}
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.9
@@ -25,6 +25,8 @@ dataSources:
       eventHandlers:
         - event: CreatorClaimed(indexed address,string,uint256)
           handler: handleCreatorClaimed
+        - event: ProfileUpdated(indexed address,string,string,string,string,string,uint256)
+          handler: handleProfileUpdated
         - event: UsdcTipSent(indexed address,indexed address,string,uint256,string,string,uint256)
           handler: handleUsdcTipSent
         - event: EurcTipSent(indexed address,indexed address,string,uint256,string,string,uint256)

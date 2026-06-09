@@ -9,6 +9,7 @@ import { erc20Abi, flickRegistryAbi } from "@/lib/abi";
 import { FLICK_CONTRACT_ADDRESS, TOKEN_ADDRESSES, type FlickToken } from "@/lib/constants";
 import { sanitizeMessage } from "@/lib/format";
 import { wagmiConfig } from "@/lib/wagmi-config";
+import type { CreatorProfileSettings } from "@/lib/types";
 
 type TransactionState = "idle" | "approving" | "confirming" | "success" | "error";
 
@@ -30,6 +31,7 @@ function friendlyContractError(error: unknown) {
       if (name === "EmptyAmount") return new Error("Enter an amount greater than zero.");
       if (name === "SenderNameTooLong") return new Error("Sender name must be 32 characters or fewer.");
       if (name === "MessageTooLong") return new Error("Message must be 140 characters or fewer.");
+      if (name === "ProfileFieldTooLong") return new Error("One or more profile fields are too long.");
       if (name === "TransferFailed") return new Error("Token transfer failed.");
     }
   }
@@ -74,6 +76,46 @@ export function useClaimNickname() {
   }
 
   return { claim, state, hash, isPending: writer.isPending };
+}
+
+export function useUpdateProfile() {
+  const writer = useWriteContract();
+  const [state, setState] = useState<TransactionState>("idle");
+  const [hash, setHash] = useState<Hash | undefined>();
+
+  async function updateProfile(settings: CreatorProfileSettings) {
+    if (!FLICK_CONTRACT_ADDRESS) throw new Error("Missing NEXT_PUBLIC_FLICK_CONTRACT_ADDRESS.");
+
+    setState("confirming");
+    try {
+      const txHash = await writer.writeContractAsync({
+        address: FLICK_CONTRACT_ADDRESS,
+        abi: flickRegistryAbi,
+        functionName: "updateProfile",
+        args: [
+          settings.displayName.trim().slice(0, 48),
+          settings.bio.trim().slice(0, 160),
+          settings.avatarUrl.trim().slice(0, 512),
+          settings.profileStatus.trim().slice(0, 48)
+        ]
+      });
+      setHash(txHash);
+      await waitForTransactionReceipt(wagmiConfig, { hash: txHash });
+      setState("success");
+      return txHash;
+    } catch (error) {
+      setState("error");
+      throw friendlyContractError(error);
+    }
+  }
+
+  return {
+    updateProfile,
+    reset: () => setState("idle"),
+    state,
+    hash,
+    isPending: writer.isPending
+  };
 }
 
 export function useSendTip(token: FlickToken, amount: string) {

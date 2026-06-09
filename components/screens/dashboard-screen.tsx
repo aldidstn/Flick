@@ -1,21 +1,24 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Copy, Download, ExternalLink, QrCode, Save, Share2, WalletCards, X } from "lucide-react";
-import { useAccount } from "wagmi";
+import { uploadPresigned } from "@vercel/blob/client";
+import { Copy, Download, ExternalLink, Loader2, QrCode, Save, Share2, WalletCards, X } from "lucide-react";
+import { useAccount, useSignMessage } from "wagmi";
 import { ActivityFeed } from "@/components/ui/activity-feed";
 import { AppFrame } from "@/components/ui/app-frame";
 import { CreatorAvatar } from "@/components/ui/creator-avatar";
 import { FlickCharacter } from "@/components/ui/flick-illustrations";
 import { GlassCard } from "@/components/ui/glass-card";
 import { WalletButton } from "@/components/ui/wallet-button";
+import { AVATAR_CONTENT_TYPES, MAX_AVATAR_BYTES, avatarUploadMessage } from "@/lib/avatar-upload";
 import type { FlickToken } from "@/lib/constants";
 import { displayProfileUrl, formatTokenAmount, publicProfileUrl } from "@/lib/format";
 import { useActivity } from "@/lib/hooks/use-activity";
 import { useCurrentCreator } from "@/lib/hooks/use-creator";
 import { useLiveTipEvents } from "@/lib/hooks/use-live-tip-events";
+import { useUpdateProfile } from "@/lib/hooks/use-flick-transactions";
 import { useProfileSettings } from "@/lib/hooks/use-profile-settings";
 import type { CreatorProfileSettings } from "@/lib/types";
 
@@ -33,8 +36,18 @@ function roundedRect(ctx: CanvasRenderingContext2D, x: number, y: number, width:
   ctx.closePath();
 }
 
+function loadCanvasImage(src: string) {
+  return new Promise<HTMLImageElement>((resolve, reject) => {
+    const image = new window.Image();
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error(`Could not load ${src}.`));
+    image.src = src;
+  });
+}
+
 export function DashboardScreen() {
-  const { isConnected } = useAccount();
+  const { address, isConnected } = useAccount();
+  const signer = useSignMessage();
   const { profile, loading } = useCurrentCreator();
   const { activity: indexedActivity } = useActivity(profile?.id);
   const persistedTipData = useLiveTipEvents({
@@ -49,6 +62,11 @@ export function DashboardScreen() {
   const [incomeFilter, setIncomeFilter] = useState<"ALL" | FlickToken>("ALL");
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [profileSnapshot, setProfileSnapshot] = useState<CreatorProfileSettings | null>(null);
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPreviewUrl, setAvatarPreviewUrl] = useState("");
+  const [profileSaveError, setProfileSaveError] = useState<string | null>(null);
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
+  const [avatarUploadProgress, setAvatarUploadProgress] = useState(0);
   const nickname = profile?.nickname || "";
   const shareUrl = useMemo(() => (nickname ? publicProfileUrl(nickname) : ""), [nickname]);
   const qrImageUrl = useMemo(
@@ -59,6 +77,7 @@ export function DashboardScreen() {
     [shareUrl]
   );
   const profileSettings = useProfileSettings(profile?.nickname);
+  const profileUpdate = useUpdateProfile();
   const filteredActivity = useMemo(
     () =>
       incomeFilter === "ALL"
@@ -71,19 +90,61 @@ export function DashboardScreen() {
     [filteredActivity]
   );
 
+  useEffect(() => {
+    return () => {
+      if (avatarPreviewUrl) URL.revokeObjectURL(avatarPreviewUrl);
+    };
+  }, [avatarPreviewUrl]);
+
   function updateAvatarFile(file?: File) {
     if (!file) return;
-    if (!file.type.startsWith("image/")) {
-      profileSettings.setSettings({ ...profileSettings.settings, avatarUrl: "" });
+    if (!AVATAR_CONTENT_TYPES.includes(file.type as (typeof AVATAR_CONTENT_TYPES)[number])) {
+      setProfileSaveError("Use a JPEG, PNG, or WebP image.");
+      return;
+    }
+    if (file.size > MAX_AVATAR_BYTES) {
+      setProfileSaveError("Avatar image must be 2 MB or smaller.");
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (typeof reader.result !== "string") return;
-      profileSettings.setSettings({ ...profileSettings.settings, avatarUrl: reader.result });
-    };
-    reader.readAsDataURL(file);
+    setProfileSaveError(null);
+    setAvatarFile(file);
+    setAvatarPreviewUrl(URL.createObjectURL(file));
+  }
+
+  async function saveProfile() {
+    if (!address || !nickname) throw new Error("Connect the wallet that owns this profile.");
+
+    let avatarUrl = profileSettings.settings.avatarUrl;
+    if (avatarFile) {
+      const extension = avatarFile.type === "image/jpeg" ? "jpg" : avatarFile.type === "image/png" ? "png" : "webp";
+      const pathname = `avatars/${nickname}/${Date.now()}.${extension}`;
+      const issuedAt = Date.now();
+      const unsigned = { address, nickname, pathname, issuedAt };
+      const signature = await signer.signMessageAsync({ message: avatarUploadMessage(unsigned) });
+      setAvatarUploadProgress(1);
+      const blob = await uploadPresigned(pathname, avatarFile, {
+        access: "public",
+        handleUploadUrl: "/api/avatar/upload",
+        clientPayload: JSON.stringify({ ...unsigned, signature }),
+        contentType: avatarFile.type,
+        onUploadProgress: ({ percentage }) => setAvatarUploadProgress(Math.max(1, Math.round(percentage)))
+      });
+      avatarUrl = blob.url;
+    } else if (/^data:image\//i.test(avatarUrl)) {
+      throw new Error("Choose your avatar image again so Flick can upload it permanently.");
+    } else if (avatarUrl.length > 512) {
+      throw new Error("Avatar URL is too long. Choose an image file instead.");
+    }
+
+    const next = { ...profileSettings.settings, avatarUrl };
+    await profileUpdate.updateProfile(next);
+    profileSettings.save(next);
+    setAvatarFile(null);
+    setAvatarPreviewUrl("");
+    setAvatarUploadProgress(0);
+    setProfileSaveError(null);
+    void profileSettings.refetch();
   }
 
   async function copyLink() {
@@ -166,6 +227,7 @@ export function DashboardScreen() {
       const response = await fetch(qrImageUrl);
       const blob = await response.blob();
       const qrBitmap = await createImageBitmap(blob);
+      const logoImage = await loadCanvasImage("/logo.svg");
       const displayName = profileSettings.settings.displayName || nickname;
       const canvas = document.createElement("canvas");
       const scale = 2;
@@ -205,21 +267,19 @@ export function DashboardScreen() {
       roundedRect(ctx, 36, 28, 408, 550, 24);
       ctx.fill();
 
-      ctx.textAlign = "center";
-      ctx.textBaseline = "alphabetic";
-      ctx.fillStyle = "#4bcf00";
-      ctx.font = "400 31px Arial, sans-serif";
-      ctx.fillText("Flick", width / 2, 89);
+      ctx.drawImage(logoImage, width / 2 - 88.5, 57, 177, 60);
 
       ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
-      roundedRect(ctx, 99, 124, 282, 282, 12);
+      roundedRect(ctx, 99, 137, 282, 282, 12);
       ctx.fill();
-      ctx.drawImage(qrBitmap, 112, 137, 256, 256);
+      ctx.drawImage(qrBitmap, 112, 150, 256, 256);
 
       ctx.fillStyle = "rgba(255, 255, 255, 0.72)";
-      roundedRect(ctx, 40, 427, 396, 143, 16);
+      roundedRect(ctx, 40, 440, 396, 130, 16);
       ctx.fill();
 
+      ctx.textAlign = "center";
+      ctx.textBaseline = "alphabetic";
       ctx.fillStyle = "#3aa600";
       ctx.font = "900 48px Arial Rounded MT Bold, Arial, sans-serif";
       const cardName = displayName.slice(0, 18);
@@ -227,11 +287,11 @@ export function DashboardScreen() {
       if (nameWidth > 340) {
         ctx.font = `900 ${Math.max(34, Math.floor((340 / nameWidth) * 48))}px Arial Rounded MT Bold, Arial, sans-serif`;
       }
-      ctx.fillText(cardName, width / 2, 491);
+      ctx.fillText(cardName, width / 2, 495);
 
       ctx.fillStyle = "#777777";
       ctx.font = "900 17px Nunito Sans, Arial, sans-serif";
-      ctx.fillText(displayProfileUrl(nickname), width / 2, 540);
+      ctx.fillText(displayProfileUrl(nickname), width / 2, 545);
 
       const url = await new Promise<string>((resolve, reject) => {
         canvas.toBlob((cardBlob) => {
@@ -437,18 +497,26 @@ export function DashboardScreen() {
                 </div>
                 <form
                   className="mt-6 space-y-4"
-                  onSubmit={(event) => {
+                  onSubmit={async (event) => {
                     event.preventDefault();
                     if (!isEditingProfile) {
                       setProfileSnapshot({ ...profileSettings.settings });
+                      setProfileSaveError(null);
                       setIsEditingProfile(true);
                       return;
                     }
-                    const saved = profileSettings.save(profileSettings.settings);
-                    if (saved) {
+                    const form = event.currentTarget;
+                    setIsSavingProfile(true);
+                    try {
+                      await saveProfile();
                       setProfileSnapshot(null);
                       setIsEditingProfile(false);
-                      event.currentTarget.reset();
+                      form.reset();
+                    } catch (caught) {
+                      setProfileSaveError(caught instanceof Error ? caught.message.split("\n")[0] : "Profile update failed.");
+                    } finally {
+                      setIsSavingProfile(false);
+                      setAvatarUploadProgress(0);
                     }
                   }}
                 >
@@ -467,6 +535,7 @@ export function DashboardScreen() {
                           }
                           disabled={!isEditingProfile}
                           placeholder={placeholder}
+                          maxLength={160}
                           rows={4}
                           className="flat-input mt-2 w-full resize-none px-4 py-3 font-bold text-ink placeholder:text-silver disabled:bg-cloud/30 disabled:text-graphite"
                         />
@@ -478,6 +547,7 @@ export function DashboardScreen() {
                           }
                           disabled={!isEditingProfile}
                           placeholder={placeholder}
+                          maxLength={key === "displayName" || key === "profileStatus" ? 48 : undefined}
                           className="flat-input mt-2 w-full px-4 py-3 font-bold text-ink placeholder:text-silver disabled:bg-cloud/30 disabled:text-graphite"
                         />
                       )}
@@ -488,21 +558,25 @@ export function DashboardScreen() {
                     <div className="mt-2 flex items-center gap-3">
                       <CreatorAvatar
                         nickname={nickname}
-                        imageUrl={profileSettings.settings.avatarUrl}
+                        imageUrl={avatarPreviewUrl || profileSettings.settings.avatarUrl}
                         size="md"
                       />
                       <input
                         type="file"
-                        accept="image/png,image/jpeg,image/webp,image/gif"
+                        accept="image/png,image/jpeg,image/webp"
                         disabled={!isEditingProfile}
                         onChange={(event) => updateAvatarFile(event.target.files?.[0])}
                         className="flat-input w-full px-4 py-3 text-sm font-bold text-ink file:mr-3 file:rounded-lg file:border-0 file:bg-duo-light file:px-3 file:py-2 file:text-xs file:font-black file:uppercase file:text-duo disabled:bg-cloud/30 disabled:text-graphite"
                       />
                     </div>
-                    {profileSettings.settings.avatarUrl && isEditingProfile ? (
+                    {(profileSettings.settings.avatarUrl || avatarFile) && isEditingProfile ? (
                       <button
                         type="button"
-                        onClick={() => profileSettings.setSettings({ ...profileSettings.settings, avatarUrl: "" })}
+                        onClick={() => {
+                          setAvatarFile(null);
+                          setAvatarPreviewUrl("");
+                          profileSettings.setSettings({ ...profileSettings.settings, avatarUrl: "" });
+                        }}
                         className="mt-2 text-xs font-black uppercase text-sky"
                       >
                         Remove avatar
@@ -513,25 +587,35 @@ export function DashboardScreen() {
                     <div className="grid grid-cols-2 gap-3">
                       <button
                         type="button"
+                        disabled={isSavingProfile}
                         onClick={(event) => {
                           if (profileSnapshot) {
                             profileSettings.setSettings(profileSnapshot);
                           }
                           setProfileSnapshot(null);
+                          setAvatarFile(null);
+                          setAvatarPreviewUrl("");
+                          setProfileSaveError(null);
+                          setAvatarUploadProgress(0);
                           setIsEditingProfile(false);
                           event.currentTarget.form?.reset();
                         }}
-                        className="focus-ring inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border-2 border-duo bg-white px-4 py-3 text-sm font-black uppercase text-duo transition hover:bg-duo-light"
+                        className="focus-ring inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border-2 border-duo bg-white px-4 py-3 text-sm font-black uppercase text-duo transition hover:bg-duo-light disabled:cursor-not-allowed disabled:opacity-60"
                       >
                         <X className="h-5 w-5" aria-hidden />
                         Cancel
                       </button>
                       <button
                         type="submit"
-                        className="duo-button focus-ring inline-flex min-h-12 items-center justify-center gap-2 px-4 py-3 text-sm font-black uppercase transition"
+                        disabled={isSavingProfile || profileUpdate.isPending || profileUpdate.state === "confirming"}
+                        className="duo-button focus-ring inline-flex min-h-12 items-center justify-center gap-2 px-4 py-3 text-sm font-black uppercase transition disabled:cursor-not-allowed disabled:opacity-60"
                       >
-                        <Save className="h-5 w-5" aria-hidden />
-                        Save profile
+                        {isSavingProfile || profileUpdate.state === "confirming" ? (
+                          <Loader2 className="h-5 w-5 animate-spin" aria-hidden />
+                        ) : (
+                          <Save className="h-5 w-5" aria-hidden />
+                        )}
+                        {avatarUploadProgress > 0 ? `Uploading ${avatarUploadProgress}%` : avatarFile ? "Upload & save" : "Save profile"}
                       </button>
                     </div>
                   ) : (
@@ -543,8 +627,10 @@ export function DashboardScreen() {
                       Edit profile
                     </button>
                   )}
-                  {profileSettings.error ? (
-                    <p className="text-center text-xs font-black uppercase text-bubblegum">{profileSettings.error}</p>
+                  {profileSaveError || profileSettings.error ? (
+                    <p className="text-center text-xs font-black uppercase text-bubblegum">
+                      {profileSaveError || profileSettings.error}
+                    </p>
                   ) : profileSettings.savedAt ? (
                     <p className="text-center text-xs font-black uppercase text-duo">Profile saved</p>
                   ) : null}

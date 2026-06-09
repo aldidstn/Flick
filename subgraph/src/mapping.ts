@@ -2,6 +2,7 @@ import { BigDecimal, BigInt, Bytes } from "@graphprotocol/graph-ts";
 import {
   CreatorClaimed,
   EurcTipSent,
+  ProfileUpdated,
   UsdcTipSent
 } from "../generated/FlickRegistry/FlickRegistry";
 import { Creator, EurcTip, UsdcTip } from "../generated/schema";
@@ -33,6 +34,17 @@ export function handleCreatorClaimed(event: CreatorClaimed): void {
   let creator = getOrCreateCreator(id, event.params.nickname, event.params.timestamp);
   creator.nickname = event.params.nickname;
   creator.createdAt = event.params.timestamp;
+  creator.save();
+}
+
+export function handleProfileUpdated(event: ProfileUpdated): void {
+  let id = creatorId(event.params.creator);
+  let creator = getOrCreateCreator(id, event.params.nickname, event.params.timestamp);
+  creator.displayName = event.params.displayName;
+  creator.bio = event.params.bio;
+  creator.avatarUrl = event.params.avatarUrl;
+  creator.profileStatus = event.params.profileStatus;
+  creator.profileUpdatedAt = event.params.timestamp;
   creator.save();
 }
 

@@ -24,6 +24,16 @@ type TopCreatorsResult = {
     creator: string;
     amount: string;
   }[];
+  profileUpdateds: {
+    id: string;
+    creator: string;
+    nickname: string;
+    displayName?: string;
+    bio?: string;
+    avatarUrl?: string;
+    profileStatus?: string;
+    timestampParam?: string;
+  }[];
 };
 
 function creatorTotal(creator: CreatorProfile) {
@@ -46,7 +56,7 @@ function amountToNumber(value?: string) {
 export function useTopCreators(limit = 6) {
   const shouldQuery = Boolean(GOLDSKY_GRAPHQL_URL);
   const query = useQuery<TopCreatorsResult>(TOP_CREATOR_EVENTS, {
-    variables: { creatorLimit: 100, tipLimit: 500 },
+    variables: { creatorLimit: 100, tipLimit: 500, profileLimit: 500 },
     skip: !shouldQuery,
     fetchPolicy: "cache-and-network",
     pollInterval: 12_000
@@ -56,6 +66,7 @@ export function useTopCreators(limit = 6) {
     const byNickname = new Map<string, CreatorProfile>();
     const usdcTotals = new Map<string, number>();
     const eurcTotals = new Map<string, number>();
+    const profiles = new Map<string, TopCreatorsResult["profileUpdateds"][number]>();
 
     for (const tip of query.data?.usdcTipSents || []) {
       const creator = normalizeAddress(tip.creator);
@@ -67,22 +78,32 @@ export function useTopCreators(limit = 6) {
       eurcTotals.set(creator, (eurcTotals.get(creator) || 0) + amountToNumber(tip.amount));
     }
 
+    for (const profile of query.data?.profileUpdateds || []) {
+      const nickname = profile.nickname.toLowerCase();
+      if (!profiles.has(nickname)) profiles.set(nickname, profile);
+    }
+
     for (const claim of query.data?.creatorClaimeds || []) {
       const creator = normalizeAddress(claim.creator);
       const nickname = claim.nickname.toLowerCase();
+      const profile = profiles.get(nickname);
       byNickname.set(nickname, {
         id: creator,
         nickname,
         totalUsdcTipsReceived: String(usdcTotals.get(creator) || 0),
         totalEurcTipsReceived: String(eurcTotals.get(creator) || 0),
-        createdAt: claim.timestampParam || "0"
+        createdAt: claim.timestampParam || "0",
+        displayName: profile?.displayName,
+        bio: profile?.bio,
+        avatarUrl: profile?.avatarUrl,
+        profileStatus: profile?.profileStatus
       });
     }
 
     return Array.from(byNickname.values())
       .sort((a, b) => creatorTotal(b) - creatorTotal(a))
       .slice(0, limit);
-  }, [limit, query.data?.creatorClaimeds, query.data?.eurcTipSents, query.data?.usdcTipSents]);
+  }, [limit, query.data?.creatorClaimeds, query.data?.eurcTipSents, query.data?.profileUpdateds, query.data?.usdcTipSents]);
 
   return {
     creators,

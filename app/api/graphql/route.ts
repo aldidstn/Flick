@@ -12,22 +12,39 @@ const RATE_WINDOW_MS = 10_000;
 const allowedRoots: Record<string, Set<string>> = {
   CreatorByNickname: new Set(["creatorClaimeds"]),
   CreatorByWallet: new Set(["creatorClaimeds"]),
-  TopCreatorEvents: new Set(["creatorClaimeds", "usdcTipSents", "eurcTipSents"]),
+  ProfileByNickname: new Set(["profileUpdateds"]),
+  TopCreatorEvents: new Set(["creatorClaimeds", "usdcTipSents", "eurcTipSents", "profileUpdateds"]),
   RecentTips: new Set(["usdcTipSents", "eurcTipSents"])
 };
 
 const allowedFields: Record<string, Set<string>> = {
   CreatorByNickname: new Set(["creatorClaimeds", "id", "creator", "nickname", "timestampParam"]),
   CreatorByWallet: new Set(["creatorClaimeds", "id", "creator", "nickname", "timestampParam"]),
+  ProfileByNickname: new Set([
+    "profileUpdateds",
+    "id",
+    "creator",
+    "nickname",
+    "displayName",
+    "bio",
+    "avatarUrl",
+    "profileStatus",
+    "timestampParam"
+  ]),
   TopCreatorEvents: new Set([
     "creatorClaimeds",
     "usdcTipSents",
     "eurcTipSents",
+    "profileUpdateds",
     "id",
     "creator",
     "nickname",
     "timestampParam",
-    "amount"
+    "amount",
+    "displayName",
+    "bio",
+    "avatarUrl",
+    "profileStatus"
   ]),
   RecentTips: new Set(["usdcTipSents", "eurcTipSents", "id", "senderName", "amount", "message", "timestampParam"])
 };
@@ -118,7 +135,7 @@ function validateOperation(query: string, operationName: string, variables: Reco
     if (selectedRoots.has(selection.name.value)) return "Duplicate GraphQL root field is not allowed.";
     selectedRoots.add(selection.name.value);
 
-    if (operationName === "CreatorByNickname") {
+    if (operationName === "CreatorByNickname" || operationName === "ProfileByNickname") {
       if (!hasExpectedWhere(selection.arguments, "nickname", "nickname") || !hasValidFirstLimit(selection, variables, 1)) {
         return "Invalid creator query.";
       }
@@ -149,7 +166,7 @@ function validateOperation(query: string, operationName: string, variables: Reco
     return "GraphQL field is not allowed.";
   }
 
-  if (operationName === "CreatorByNickname" && typeof variables.nickname !== "string") {
+  if ((operationName === "CreatorByNickname" || operationName === "ProfileByNickname") && typeof variables.nickname !== "string") {
     return "Missing nickname query variable.";
   }
 

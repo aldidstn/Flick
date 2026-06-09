@@ -23,7 +23,7 @@ export const CREATOR_BY_WALLET = gql`
 `;
 
 export const TOP_CREATOR_EVENTS = gql`
-  query TopCreatorEvents($creatorLimit: Int!, $tipLimit: Int!) {
+  query TopCreatorEvents($creatorLimit: Int!, $tipLimit: Int!, $profileLimit: Int!) {
     creatorClaimeds(first: $creatorLimit, orderBy: timestamp_, orderDirection: desc) {
       id
       creator
@@ -39,6 +39,31 @@ export const TOP_CREATOR_EVENTS = gql`
       id
       creator
       amount
+    }
+    profileUpdateds(first: $profileLimit, orderBy: timestamp_, orderDirection: desc) {
+      id
+      creator
+      nickname
+      displayName
+      bio
+      avatarUrl
+      profileStatus
+      timestampParam
+    }
+  }
+`;
+
+export const PROFILE_BY_NICKNAME = gql`
+  query ProfileByNickname($nickname: String!) {
+    profileUpdateds(where: { nickname: $nickname }, first: 1, orderBy: timestamp_, orderDirection: desc) {
+      id
+      creator
+      nickname
+      displayName
+      bio
+      avatarUrl
+      profileStatus
+      timestampParam
     }
   }
 `;

@@ -1,0 +1,17 @@
+{
+  "version": "1",
+  "name": "flick-subgraph",
+  "abis": {
+    "FlickRegistry": {
+      "path": "./abis/FlickRegistry.json"
+    }
+  },
+  "instances": [
+    {
+      "abi": "FlickRegistry",
+      "address": "0x8b10EEca9Dd747ED1B9cc675094feF09737B6157",
+      "startBlock": 46271778,
+      "chain": "arc-testnet"
+    }
+  ]
+}

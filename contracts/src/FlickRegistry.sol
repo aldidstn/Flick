@@ -9,6 +9,10 @@ contract FlickRegistry {
     uint256 public constant MAX_NICKNAME_LENGTH = 32;
     uint256 public constant MAX_SENDER_NAME_LENGTH = 32;
     uint256 public constant MAX_MESSAGE_LENGTH = 140;
+    uint256 public constant MAX_DISPLAY_NAME_LENGTH = 48;
+    uint256 public constant MAX_BIO_LENGTH = 160;
+    uint256 public constant MAX_AVATAR_URL_LENGTH = 512;
+    uint256 public constant MAX_PROFILE_STATUS_LENGTH = 48;
 
     error InvalidNickname();
     error ReservedNickname();
@@ -18,6 +22,7 @@ contract FlickRegistry {
     error EmptyAmount();
     error SenderNameTooLong();
     error MessageTooLong();
+    error ProfileFieldTooLong();
     error TransferFailed();
 
     IERC20 public immutable usdc;
@@ -29,6 +34,15 @@ contract FlickRegistry {
     mapping(address creator => uint256 amount) public totalEurcTipsReceived;
 
     event CreatorClaimed(address indexed creator, string nickname, uint256 timestamp);
+    event ProfileUpdated(
+        address indexed creator,
+        string nickname,
+        string displayName,
+        string bio,
+        string avatarUrl,
+        string profileStatus,
+        uint256 timestamp
+    );
     event UsdcTipSent(
         address indexed creator,
         address indexed sender,
@@ -77,6 +91,24 @@ contract FlickRegistry {
         totalUsdcTipsReceived[creator] += amount;
 
         emit UsdcTipSent(creator, msg.sender, nickname, amount, senderName, message, block.timestamp);
+    }
+
+    function updateProfile(
+        string calldata displayName,
+        string calldata bio,
+        string calldata avatarUrl,
+        string calldata profileStatus
+    ) external {
+        string memory nickname = nicknameOf[msg.sender];
+        if (bytes(nickname).length == 0) revert CreatorNotFound();
+        if (
+            bytes(displayName).length > MAX_DISPLAY_NAME_LENGTH
+                || bytes(bio).length > MAX_BIO_LENGTH
+                || bytes(avatarUrl).length > MAX_AVATAR_URL_LENGTH
+                || bytes(profileStatus).length > MAX_PROFILE_STATUS_LENGTH
+        ) revert ProfileFieldTooLong();
+
+        emit ProfileUpdated(msg.sender, nickname, displayName, bio, avatarUrl, profileStatus, block.timestamp);
     }
 
     function tipEURC(

@@ -2,15 +2,13 @@
 
 import Link from "next/link";
 import { initialsFor } from "@/lib/format";
-import { useProfileSettings } from "@/lib/hooks/use-profile-settings";
 import type { CreatorProfile } from "@/lib/types";
 
 export function CreatorCard({ creator }: { creator: CreatorProfile }) {
   const nickname = creator.nickname.toLowerCase();
-  const { settings } = useProfileSettings(nickname);
-  const displayName = settings.displayName || creator.displayName || nickname;
-  const avatarUrl = settings.avatarUrl || creator.avatarUrl;
-  const statusLabel = settings.profileStatus || creator.profileStatus || "Digital Creator";
+  const displayName = creator.displayName || nickname;
+  const avatarUrl = creator.avatarUrl;
+  const statusLabel = creator.profileStatus || "Digital Creator";
 
   return (
     <Link

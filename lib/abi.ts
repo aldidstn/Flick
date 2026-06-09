@@ -7,13 +7,39 @@ export const flickRegistryAbi = [
   { type: "error", name: "EmptyAmount", inputs: [] },
   { type: "error", name: "SenderNameTooLong", inputs: [] },
   { type: "error", name: "MessageTooLong", inputs: [] },
+  { type: "error", name: "ProfileFieldTooLong", inputs: [] },
   { type: "error", name: "TransferFailed", inputs: [] },
+  {
+    type: "function",
+    name: "updateProfile",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "displayName", type: "string" },
+      { name: "bio", type: "string" },
+      { name: "avatarUrl", type: "string" },
+      { name: "profileStatus", type: "string" }
+    ],
+    outputs: []
+  },
   {
     type: "function",
     name: "claimNickname",
     stateMutability: "nonpayable",
     inputs: [{ name: "nickname", type: "string" }],
     outputs: []
+  },
+  {
+    type: "event",
+    name: "ProfileUpdated",
+    inputs: [
+      { indexed: true, name: "creator", type: "address" },
+      { indexed: false, name: "nickname", type: "string" },
+      { indexed: false, name: "displayName", type: "string" },
+      { indexed: false, name: "bio", type: "string" },
+      { indexed: false, name: "avatarUrl", type: "string" },
+      { indexed: false, name: "profileStatus", type: "string" },
+      { indexed: false, name: "timestamp", type: "uint256" }
+    ]
   },
   {
     type: "function",

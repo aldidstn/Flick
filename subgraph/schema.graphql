@@ -4,6 +4,11 @@ type Creator @entity {
   totalUsdcTipsReceived: BigDecimal!
   totalEurcTipsReceived: BigDecimal!
   createdAt: BigInt!
+  displayName: String
+  bio: String
+  avatarUrl: String
+  profileStatus: String
+  profileUpdatedAt: BigInt
   usdcTips: [UsdcTip!]! @derivedFrom(field: "creator")
   eurcTips: [EurcTip!]! @derivedFrom(field: "creator")
 }

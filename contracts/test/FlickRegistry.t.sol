@@ -27,6 +27,12 @@ contract MockToken {
     }
 }
 
+contract ProfileUpdater {
+    function update(FlickRegistry registry) external {
+        registry.updateProfile("Mira", "Creator", "https://example.com/avatar.webp", "Verified creator");
+    }
+}
+
 contract FlickRegistryTest {
     MockToken private usdc;
     MockToken private eurc;
@@ -112,6 +118,34 @@ contract FlickRegistryTest {
         registry.tipEURC("aldidesign", 12_000_000, "Jonas", "Merci");
 
         require(registry.totalEurcTipsReceived(address(this)) == 12_000_000, "eurc total");
+    }
+
+    function testUpdatesClaimedCreatorProfile() public {
+        registry.claimNickname("aldidesign");
+        registry.updateProfile("Aldi", "Designer", "https://example.com/avatar.webp", "Verified creator");
+    }
+
+    function testRejectsProfileUpdateBeforeClaim() public {
+        ProfileUpdater updater = new ProfileUpdater();
+        bool accepted;
+        try updater.update(registry) {
+            accepted = true;
+        } catch {}
+        require(!accepted, "accepted profile without nickname");
+    }
+
+    function testRejectsLongProfileField() public {
+        registry.claimNickname("aldidesign");
+        bool accepted;
+        try registry.updateProfile(
+            "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvw",
+            "Designer",
+            "https://example.com/avatar.webp",
+            "Verified creator"
+        ) {
+            accepted = true;
+        } catch {}
+        require(!accepted, "accepted long display name");
     }
 
     function testRejectsZeroTip() public {
